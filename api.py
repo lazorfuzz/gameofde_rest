@@ -13,12 +13,12 @@ db.init_app(app)
 db.create_all(app=app)
 api = Api(app)
 
+api.add_resource(helloController.HelloController, '/hello')
+api.add_resource(userController.LoginController, '/login')
+api.add_resource(userController.CreateAccountController, '/create_account')
+api.add_resource(mainControllers.CaesarController, '/caesar')
+
 
 
 if __name__ == '__main__':
-    api.add_resource(helloController.HelloController, '/hello')
-    api.add_resource(userController.LoginController, '/login')
-    api.add_resource(userController.CreateAccountController, '/create_account')
-    api.add_resource(mainControllers.CaesarController, '/caesar')
-    
     app.run(debug=True)
