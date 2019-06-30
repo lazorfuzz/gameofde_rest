@@ -10,11 +10,17 @@ python3 api.py
 ## Test Commands
 Using [httpie](https://httpie.org/)
 ```python
+# Getting organizations list:
+http GET http://127.0.0.1:5000/orgs
 # Creating a user:
 http POST http://127.0.0.1:5000/create_account username="USERNAME" password="PASSWORD" email="EMAIL" role="admin"
 # Logging in:
 http POST http://127.0.0.1:5000/login username="USERNAME" password="PASSWORD"
 # Submitting a cipher:
-http POST http://127.0.0.1:5000/caesar 'Cookie:auth_token=AUTH_TOKEN_HERE' cipher='hello'
+http POST http://127.0.0.1:5000/caesar 'Auth-Token:AUTH_TOKEN_HERE' cipher='hello' lang='en'
+# Getting a specific organization:
+http GET http://127.0.0.1:5000/orgs/NSA 'Auth-Token:AUTH_TOKEN_HERE'
+# Creating a new organization:
+http POST http://127.0.0.1:5000/orgs/GCHQ 'Auth-Token:AUTH_TOKEN_HERE'
 
 ```

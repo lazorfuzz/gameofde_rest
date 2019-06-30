@@ -7,6 +7,7 @@ from functools import wraps
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
 parser.add_argument('lang')
+parser.add_argument('name')
 parser.add_argument('Auth-Token', location='headers')
 
 def authenticate(func):
@@ -53,6 +54,18 @@ class OrganizationController(Resource):
     req_user.role = 'admin'
     db.session.commit()
     return {'status': 'success'}, 201
+  
+  def put(self, org_name):
+    args = parser.parse_args()
+    org = Organization.query.filter_by(name=org_name).first_or_404()
+    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    req_user = User.query.filter_by(id=token.user_id).first()
+    # Only allow update if the user is an admin of the organization
+    if req_user.role == 'admin' and req_user.org_id == org.id:
+      if args['name']: org.name = args['name']
+      db.session.commit()
+      return { 'id': org.id, 'name': org.name }
+    return {'status': 'error', 'message': 'You do not have permission to modify this organization!'}, 401
   
 class OrganizationList(Resource):
   def get(self):
