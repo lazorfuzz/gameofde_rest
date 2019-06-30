@@ -1,11 +1,12 @@
 from flask_restful import Resource, reqparse
 from database import db
-from models import User, AuthToken
+from models import User, AuthToken, Organization
 from cipher_helper import decipher
 from functools import wraps
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
+parser.add_argument('lang')
 parser.add_argument('Auth-Token', location='headers')
 
 def authenticate(func):
@@ -26,4 +27,35 @@ class CaesarController(Resource):
   def post(self):
     args = parser.parse_args()
     print('CIPHER', args['cipher'])
-    return {'result': decipher(args['cipher'])}
+    return {'result': decipher(args['cipher'], args['lang'])}
+  
+class OrganizationController(Resource):
+  method_decorators = [authenticate]
+  def get(self, org_name):
+    org = Organization.query.filter_by(name=org_name).first_or_404()
+    users_in_org = User.query.filter_by(org_id=org.id).all()
+    users_in_org_list = list(map(lambda u: {'username': u.username, 'role': u.role, 'id': u.id}, users_in_org))
+    return {'id': org.id, 'name': org.name, 'users': users_in_org_list}
+  
+  def post(self, org_name):
+    args = parser.parse_args()
+    org = Organization.query.filter_by(name=org_name).first()
+    if org:
+      return {'status': 'error', 'message': 'This organization already exists!'}, 401
+    new_org = Organization(org_name)
+    db.session.add(new_org)
+    db.session.commit()
+    # Make user the admin of the new organization
+    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    req_user = User.query.filter_by(id=token.user_id).first()
+    new_org_id = Organization.query.filter_by(name=org_name).first().id
+    req_user.org_id = new_org_id
+    req_user.role = 'admin'
+    db.session.commit()
+    return {'status': 'success'}, 201
+  
+class OrganizationList(Resource):
+  def get(self):
+    orgs = Organization.query.all()
+    orgs_list = list(map(lambda o: { 'name': o.name, 'id': o.id }, orgs))
+    return orgs_list
