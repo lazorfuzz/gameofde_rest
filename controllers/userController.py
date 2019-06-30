@@ -20,7 +20,7 @@ class LoginController(Resource):
     if not user:
       return {'status': 'error', 'message': 'Incorrect username or password.'}, 403
     elif len(args['username']) == 0 or len(args['password']) == 0:
-        return { 'status': 'error', 'message': 'Invalid user. Please fill in all the forms.'}, 403
+        return { 'status': 'error', 'message': 'Invalid user. Please fill in each field!'}, 403
     # Handle login success
     elif user.password == sha256(args['password'].encode()).hexdigest():
       # Delete user's old auth tokens
@@ -44,9 +44,9 @@ class CreateAccountController(Resource):
       user = User.query.filter_by(username=args['username']).first()
       if user:
         return {'status': 'error', 'message': 'User already exists!'}, 403
-      if len(args['username']) == 0 or len(args['email']) or len(args['password']) == 0:
-        return { 'status': 'error', 'message': 'Invalid user. Please fill in all the forms.'}, 403
       # Create user
+      if not args['username'] or not args['password'] or not args['email']:
+        return {'status': 'error', 'message': 'Please fill in all fields!'}, 403
       new_user = User(args['username'], sha256(args['password'].encode()).hexdigest(), args['email'], args['role'])
       db.session.add(new_user)
       db.session.commit()

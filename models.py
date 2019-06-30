@@ -2,8 +2,8 @@ from database import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(120))
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True)
     role = db.Column(db.String(120))
 
@@ -19,7 +19,7 @@ class User(db.Model):
 class AuthToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    data = db.Column(db.String(80), unique=True)
+    data = db.Column(db.String(80), unique=True, nullable=False)
 
     def __init__(self, user, data):
         self.user_id = user.id
