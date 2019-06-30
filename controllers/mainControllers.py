@@ -6,14 +6,14 @@ from functools import wraps
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
-parser.add_argument('auth_token', location='cookies')
+parser.add_argument('Auth-Token', location='headers')
 
 def authenticate(func):
   @wraps(func)
   def wrapper(*args, **kwargs):
     if not getattr(func, 'authenticated', True):
       return func(*args, **kwargs)
-    token = parser.parse_args()['auth_token']
+    token = parser.parse_args()['Auth-Token']
     auth_token = AuthToken.query.filter_by(data=token).first()
     if auth_token:
       return func(*args, **kwargs)

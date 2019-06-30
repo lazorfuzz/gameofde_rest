@@ -30,7 +30,7 @@ class LoginController(Resource):
       auth_token = AuthToken(user, token_data)
       db.session.add(auth_token)
       db.session.commit()
-      return {'token': token_data}, 200, {'Set-Cookie': 'auth_token=%s;' % token_data}
+      return {'token': token_data}, 200
     else:
       return {'status': 'error', 'message': 'Invalid username or password.'}
 
