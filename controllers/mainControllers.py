@@ -10,6 +10,11 @@ parser.add_argument('lang')
 parser.add_argument('name')
 parser.add_argument('Auth-Token', location='headers')
 
+def this_user():
+  token = parser.parse_args()['Auth-Token']
+  user = User.query.filter_by(id=token.user_id).first()
+  return user
+
 def authenticate(func):
   @wraps(func)
   def wrapper(*args, **kwargs):

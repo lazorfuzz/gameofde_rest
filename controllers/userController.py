@@ -27,7 +27,7 @@ class LoginController(Resource):
     # Handle login success
     elif user.password == sha256(args['password'].encode()).hexdigest():
       # Delete user's old auth tokens
-      old_tokens = AuthToken.query.filter_by(user_id=user.id)
+      old_tokens = AuthToken.query.filter_by(user_id=user.id).all()
       for old_token in old_tokens:
         db.session.delete(old_token)
       token_data = str(uuid4())
@@ -47,9 +47,9 @@ class CreateAccountController(Resource):
       user = User.query.filter_by(username=args['username']).first()
       if user:
         return {'status': 'error', 'message': 'User already exists!'}, 401
-      # Create user
       if not args['username'] or not args['password'] or not args['email']:
         return {'status': 'error', 'message': 'Please fill in all fields!'}, 401
+      # Create user
       new_user = User(args['username'], sha256(args['password'].encode()).hexdigest(), args['email'], args['role'], args['org_id'])
       db.session.add(new_user)
       db.session.commit()
@@ -69,7 +69,7 @@ class UserController(Resource):
   
   def put(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).firs()
+    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow update if the user is modifying self, or the user is an admin modifiying another user in the same org
