@@ -1,8 +1,10 @@
 from flask_restful import Resource, reqparse
 from database import db
 from models import User, AuthToken, Organization
-from cipher_helper import decipher
+from ciphers.cipher_helper import decipher
 from functools import wraps
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
@@ -77,3 +79,15 @@ class OrganizationList(Resource):
     orgs = Organization.query.all()
     orgs_list = list(map(lambda o: { 'name': o.name, 'id': o.id }, orgs))
     return orgs_list
+
+class NewsController(Resource):
+  def get(self, org_name):
+    try:
+      news_url='https://news.google.com/news/rss/search?q=%s' % org_name
+      with urlopen(news_url) as client:
+        xml_page = client.read()
+      page=BeautifulSoup(xml_page, 'xml')
+      news_list=page.findAll('item')
+      return list(map(lambda n: {'title': n.title.text, 'link': n.link.text, 'date': n.pubDate.text}, news_list))
+    except:
+      return {'status': 'error', 'message': 'News not found!'}, 404

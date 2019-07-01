@@ -3,7 +3,7 @@ from flask_restful import Api
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
-from controllers import helloController, userController, mainControllers
+from controllers import userController, mainControllers
 from database import db
 from models import Organization, User, AuthToken
 
@@ -24,7 +24,7 @@ api.add_resource(userController.UserController, '/users/<user_id>')
 api.add_resource(mainControllers.OrganizationList, '/orgs')
 api.add_resource(mainControllers.OrganizationController, '/orgs/<org_name>')
 
-api.add_resource(helloController.HelloController, '/hello')
+api.add_resource(mainControllers.NewsController, '/news/<org_name>')
 api.add_resource(mainControllers.CaesarController, '/caesar')
 
 def populate_db():
