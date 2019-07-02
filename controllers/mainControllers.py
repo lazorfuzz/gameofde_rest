@@ -68,7 +68,7 @@ class OrganizationController(Resource):
     token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow update if the user is an admin of the organization
-    if req_user.role == 'admin' and req_user.org_id == org.id:
+    if req_user.role == 'admin' and int(req_user.org_id) == int(org.id):
       if args['name']: org.name = args['name']
       db.session.commit()
       return { 'id': org.id, 'name': org.name }
