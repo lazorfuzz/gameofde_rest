@@ -6,7 +6,7 @@ from models import User, AuthToken, Organization
 from controllers.mainControllers import authenticate
 
 parser = reqparse.RequestParser(bundle_errors=True)
-parser.add_argument('Auth-Token', location='headers')
+parser.add_argument('Authorization', location='headers')
 parser.add_argument('username')
 parser.add_argument('password')
 parser.add_argument('email')
@@ -71,7 +71,7 @@ class UserController(Resource):
   
   def put(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow update if the user is modifying self, or the user is an admin modifiying another user in the same org
@@ -86,7 +86,7 @@ class UserController(Resource):
   
   def delete(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow delete if the user is deleting self, or the user is an admin deleting another user in the same org

@@ -10,10 +10,10 @@ parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
 parser.add_argument('lang')
 parser.add_argument('name')
-parser.add_argument('Auth-Token', location='headers')
+parser.add_argument('Authorization', location='headers')
 
 def this_user():
-  token = parser.parse_args()['Auth-Token']
+  token = parser.parse_args()['Authorization']
   user = User.query.filter_by(id=token.user_id).first()
   return user
 
@@ -22,7 +22,7 @@ def authenticate(func):
   def wrapper(*args, **kwargs):
     if not getattr(func, 'authenticated', True):
       return func(*args, **kwargs)
-    token = parser.parse_args()['Auth-Token']
+    token = parser.parse_args()['Authorization']
     auth_token = AuthToken.query.filter_by(data=token).first()
     if auth_token:
       return func(*args, **kwargs)
@@ -54,7 +54,7 @@ class OrganizationController(Resource):
     db.session.add(new_org)
     db.session.commit()
     # Make user the admin of the new organization
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     req_user = User.query.filter_by(id=token.user_id).first()
     new_org_id = Organization.query.filter_by(name=org_name).first().id
     req_user.org_id = new_org_id
@@ -65,7 +65,7 @@ class OrganizationController(Resource):
   def put(self, org_name):
     args = parser.parse_args()
     org = Organization.query.filter_by(name=org_name).first_or_404()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow update if the user is an admin of the organization
     if req_user.role == 'admin' and int(req_user.org_id) == int(org.id):
