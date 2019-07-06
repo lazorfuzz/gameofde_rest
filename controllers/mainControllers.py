@@ -46,10 +46,12 @@ class CaesarController(Resource):
       solution = Solution.query.filter_by(cipher=cipher).first()
       if solution:
         return {'result': solution.solution}
-      new_solution = Solution(cipher, args['lang'], args['solution'], args['user_id'], args['org_id'])
+      current_user = this_user()
+      deciphered = decipher(cipher, args['lang'])
+      new_solution = Solution(cipher, args['lang'], deciphered, current_user.id, current_user.org_id)
       db.session.add(new_solution)
       db.session.commit()
-      return {'result': decipher(cipher, args['lang'])}
+      return {'result': deciphered}
     except:
       return generic_400()
   
