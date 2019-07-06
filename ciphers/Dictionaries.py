@@ -1,18 +1,20 @@
 # TOP 10 SPOKEN LANGUAGES IN US
-readfile =""
+import os
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 lang_files = {
-    'ar': 'Dictionary/Arabic.txt',
-    'zh': 'Dictionary/Chinese.txt',
-    'en': 'Dictionary/English.txt',
-    'fr': 'Dictionary/French.txt',
-    'de': 'Dictionary/German.txt',
-    'it': 'Dictionary/Italian.txt',
-    'ko': 'Dictionary/Korean.txt',
-    'ru': 'Dictionary/Russian.txt',
-    'es': 'Dictionary/Spanish.txt',
-    'tl': 'Dictionary/Tagalog.txt',
-    'vi': 'Dictionary/Vietnamese.txt'
+    'ar': {'file': 'Dictionary/Arabic.txt', 'encoding': 'utf-16'},
+    'zh': {'file': 'Dictionary/Chinese.txt', 'encoding': 'utf-16'},
+    'en': {'file': 'Dictionary/English.txt', 'encoding': 'utf-8'},
+    'fr': {'file': 'Dictionary/French.txt', 'encoding': 'utf-8'},
+    'de': {'file': 'Dictionary/German.txt', 'encoding': 'utf-8'},
+    'it': {'file': 'Dictionary/Italian.txt', 'encoding': 'utf-8'},
+    'ko': {'file': 'Dictionary/Korean.txt', 'encoding': 'utf-16'},
+    'ru': {'file': 'Dictionary/Russian.txt', 'encoding': 'utf-16'},
+    'es': {'file': 'Dictionary/Spanish.txt', 'encoding': 'utf-8'},
+    'tl': {'file': 'Dictionary/Tagalog.txt', 'encoding': 'utf-8'},
+    'vi': {'file': 'Dictionary/Vietnamese.txt', 'encoding': 'utf-16'}
 }
 
 def languageSelection(language):
@@ -21,7 +23,7 @@ def languageSelection(language):
 def dictionarylookup(language, word):
     readfile = languageSelection(language)
     if readfile != "":
-        with open(readfile, encoding="utf-16") as file:
+        with open(dir_path + '/' + readfile['file'], encoding=readfile['encoding']) as file:
             for line in file:
                 if word.strip() == line.strip():
                     return True

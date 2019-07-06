@@ -22,7 +22,7 @@ def lookup(array, language):
         elif len(array[index]) > 3:
             if dictionarylookup(language, array[index]):    # USE DICTIONARY MODULE TO LOAD THE PROPER FILE
                 return True
-    return false
+    return False
 
 
 # MAIN FUNCTION THAT PUTS IT ALL TOGETHER
