@@ -16,12 +16,12 @@ def shift(message, key):
 # WE ARE TAKING ARRAY OF WORDS AND CHECK THEM ONE BY ONE IN THE DICTIONARY
 def lookup(array, language):
     for index in range(len(array) - 1):
-        if language == 'chinese' or language == 'arabic':
+        if language == 'zh' or language == 'ar':
             if dictionarylookup(language, array[index]):    # CHINESE AND ARABIC USE 1 SYMBOL SO LENGTH OF THE WORD IS 1
-                return true
+                return True
         elif len(array[index]) > 3:
             if dictionarylookup(language, array[index]):    # USE DICTIONARY MODULE TO LOAD THE PROPER FILE
-                return true
+                return True
     return false
 
 
