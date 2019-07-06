@@ -81,7 +81,8 @@ class UserController(Resource):
       if args['email']: target_user.email = args['email']
       if args['password']: target_user.email = args['password']
       db.session.commit()
-      return {'id': target_user.id, 'username': target_user.username, 'email': target_user.email, 'role': target_user.role, 'org_id': target_user.org_id}, 200
+      org = Organization.query.filter_by(id=target_user.org_id).first()
+      return {'id': target_user.id, 'username': target_user.username, 'email': target_user.email, 'role': target_user.role, 'org_id': target_user.org_id, 'organization': org.name}, 200
     return {'status': 'error', 'message': 'You do not have permission to modify this user!'}, 401
   
   def delete(self, user_id):

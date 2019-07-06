@@ -5,7 +5,7 @@ from ciphers.cipher_helper import decipher
 from functools import wraps
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-import base64
+import traceback
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
@@ -17,12 +17,12 @@ parser.add_argument('name')
 parser.add_argument('Authorization', location='headers')
 
 def this_user():
-  token = parser.parse_args()['Authorization']
+  token = AuthToken.query.filter_by(data=parser.parse_args()['Authorization']).first()
   user = User.query.filter_by(id=token.user_id).first()
   return user
 
-def generic_400():
-  return {'status': 'error', 'message': 'Could not understand request'}, 400
+def generic_400(message='Could not understand request'):
+  return {'status': 'error', 'message': message}, 400
 
 def authenticate(func):
   @wraps(func)
@@ -33,7 +33,7 @@ def authenticate(func):
     auth_token = AuthToken.query.filter_by(data=token).first()
     if auth_token:
       return func(*args, **kwargs)
-    return {'status': 'error', 'message': 'Invalid auth token.'}, 401
+    return {'status': 'error', 'message': 'Invalid auth token.'}, 403
   return wrapper
 
 class CaesarController(Resource):
@@ -42,7 +42,7 @@ class CaesarController(Resource):
   def post(self):
     args = parser.parse_args()
     try:
-      cipher = base64.b64decode(args['cipher'])
+      cipher = args['cipher']
       solution = Solution.query.filter_by(cipher=cipher).first()
       if solution:
         return {'result': solution.solution}
@@ -52,8 +52,9 @@ class CaesarController(Resource):
       db.session.add(new_solution)
       db.session.commit()
       return {'result': deciphered}
-    except:
-      return generic_400()
+    except Exception as e:
+      traceback.print_exc()
+      return generic_400(str(e))
   
 class OrganizationController(Resource):
   method_decorators = [authenticate]
@@ -116,8 +117,8 @@ class CheckSolutionController(Resource):
       cipher = args['cipher']
       solution = Solution.query.filter_by(cipher=cipher).first_or_404()
       return {'id': solution.id, 'cipher': solution.cipher, 'lang': solution.lang, 'solution': solution.solution, user_id: 'solution.user_id', org_id: 'solution.org_id'}
-    except:
-      return generic_400()
+    except Exception as e:
+      return generic_400(str(e))
 
 class SavedSolutionsController(Resource):
   method_decorators = [authenticate]
@@ -126,8 +127,8 @@ class SavedSolutionsController(Resource):
       current_user = this_user()
       saved_solutions = SavedSolution.query.filter_by(user_id=current_user.id).all()
       return list(map(lambda s: {'id': solution.id, 'cipher': solution.cipher, 'lang': solution.lang, 'solution': solution.solution, user_id: 'solution.user_id'}, saved_solutions))
-    except:
-      return generic_400()
+    except Exception as e:
+      return generic_400(str(e))
   
   def post(self):
     try:
@@ -141,5 +142,5 @@ class SavedSolutionsController(Resource):
       db.session.add(new_saved_solution)
       db.session.commit()
       return {'status': 'success'}, 201
-    except:
-      return generic_400()
+    except Exception as e:
+      return generic_400(str(e))
