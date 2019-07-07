@@ -87,10 +87,8 @@ lang_files = {
     'fr': {'file': 'Dictionary/fr_50k.txt', 'trie': LanguageTrie('fr')},
     'de': {'file': 'Dictionary/de_50k.txt', 'trie': LanguageTrie('de')},
     'it': {'file': 'Dictionary/it_50k.txt', 'trie': LanguageTrie('it')},
-    'ko': {'file': 'Dictionary/ko_50k.txt', 'trie': LanguageTrie('ko')},
     'ru': {'file': 'Dictionary/ru_50k.txt', 'trie': LanguageTrie('ru')},
-    'es': {'file': 'Dictionary/es_50k.txt', 'trie': LanguageTrie('es')},
-    'vi': {'file': 'Dictionary/vi_50k.txt', 'trie': LanguageTrie('vi')}
+    'es': {'file': 'Dictionary/es_50k.txt', 'trie': LanguageTrie('es')}
 }
 
 def create_language_tries():
