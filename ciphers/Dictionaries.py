@@ -64,7 +64,7 @@ class LanguageTrie:
 
     def search(self, word, idx = 0, node = None):
         '''Recursively searches for a word in the trie.'''
-        if not self.trie.get('chdn'):
+        if not self.trie.get('root'):
             # If the trie wasn't preimported, import it now
             self.import_trie(self.lang)
             self.search(word, idx, node)
