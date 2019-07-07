@@ -30,8 +30,9 @@ def lookup(array, language):
     return False
 
 def decrypt(cipher, language):
-    '''Takes a cipher, tries 26 shifts, and returns the answer containing the most dictionary words'''
-    # Create a tuple representing the values: (number_of_dictionary_words_found, shift_key)
+    '''Takes a cipher, tries 26 shifts, and returns
+    the answer containing the most dictionary words'''
+    # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key)
     matches = (0, 0)
     for key in range(-13,13,1):
         shifted = shift(cipher, key, language)
@@ -40,7 +41,7 @@ def decrypt(cipher, language):
         # If number of dictionary words is greater than the current greatest, update matches
         if num_found > matches[0]:
             matches = (num_found, key)
-    # If none of the shifts yielded any dictionary words
+    # If none of the shifts yielded any dictionary words, return fail
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
     return shift(cipher, matches[1])
