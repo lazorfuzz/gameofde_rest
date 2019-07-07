@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse
 from database import db
 from models import User, AuthToken, Organization, Solution, SavedSolution
-from ciphers.cipher_helper import decipher
+from ciphers.CaesarDecipher import decrypt
 from functools import wraps
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
@@ -47,7 +47,7 @@ class CaesarController(Resource):
       if solution:
         return {'result': solution.solution}
       current_user = this_user()
-      deciphered = decipher(cipher, args['lang'])
+      deciphered = decrypt(cipher, args['lang'])
       new_solution = Solution(cipher, args['lang'], deciphered, current_user.id, current_user.org_id)
       db.session.add(new_solution)
       db.session.commit()

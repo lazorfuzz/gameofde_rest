@@ -7,9 +7,9 @@ def shift(message, key):
     exitmessage = ""
     for letter in message:
         if letter in specialCase:
-            exitmessage += ' ' + letter + ' '  # SEPARATE SPECIAL CHARACTERS BY A SPACE FOR DICTIONARY LOOKUP
+            exitmessage += letter
         else:
-            exitmessage += chr(ord(letter) + key)
+            exitmessage += chr(abs(ord(letter) + key))
     return exitmessage
 
 
@@ -29,8 +29,10 @@ def decrypt(cipher, language):
     # Create a tuple representing the values: (number_of_dictionary_words_found, shift_key)
     matches = (0, 0)
     for key in range(-13,13,1):
+        print('NEW KEY', key)
         shifted = shift(cipher, key)
         words_found = trie_search(shifted, language)
+        print(words_found)
         num_found = len(words_found)
         # If number of dictionary words is greater than the current greatest, update matches
         if num_found > matches[0]:
