@@ -45,5 +45,3 @@ def decrypt(cipher, language):
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
     return shift(cipher, matches[1])
-
-
