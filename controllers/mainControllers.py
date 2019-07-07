@@ -43,9 +43,9 @@ class CaesarController(Resource):
     args = parser.parse_args()
     try:
       cipher = args['cipher']
-      solution = Solution.query.filter_by(cipher=cipher).first()
-      if solution:
-        return {'result': solution.solution}
+      # solution = Solution.query.filter_by(cipher=cipher).first()
+      # if solution:
+        # return {'result': solution.solution}
       current_user = this_user()
       deciphered = decrypt(cipher, args['lang'])
       new_solution = Solution(cipher, args['lang'], deciphered, current_user.id, current_user.org_id)

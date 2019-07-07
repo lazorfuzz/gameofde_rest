@@ -1,16 +1,21 @@
 from ciphers.Dictionaries import trie_search
 
-specialCase = ' 1234567890_=~!@#$%^&*()_+,./?:;"*-'
+special_case = ' 1234567890_=~!@#$%^&*()_+,./?:;"*-\n'
 
-# LETTER BY LETTER WE SHIFT THE MESSAGE BY KEY WITH INCREMENTS OF 1
-def shift(message, key):
-    exitmessage = ""
-    for letter in message:
-        if letter in specialCase:
-            exitmessage += letter
-        else:
-            exitmessage += chr(abs(ord(letter) + key))
-    return exitmessage
+def shift(text, s, lang = 'en'): 
+    result = ''
+    # traverse text 
+    for i in range(len(text)): 
+        char = text[i]
+        if char in special_case:
+            result += char
+        elif (char.isupper()): 
+            if lang == 'en': result += chr((ord(char) + s-65) % 26 + 65)
+            else: result += chr(abs(ord(char) + s))
+        else: 
+            if lang == 'en': result += chr((ord(char) + s - 97) % 26 + 97) 
+            else: result += chr(abso(ord(char) + s))
+    return result 
 
 
 # WE ARE TAKING ARRAY OF WORDS AND CHECK THEM ONE BY ONE IN THE DICTIONARY
@@ -29,10 +34,8 @@ def decrypt(cipher, language):
     # Create a tuple representing the values: (number_of_dictionary_words_found, shift_key)
     matches = (0, 0)
     for key in range(-13,13,1):
-        print('NEW KEY', key)
-        shifted = shift(cipher, key)
+        shifted = shift(cipher, key, language)
         words_found = trie_search(shifted, language)
-        print(words_found)
         num_found = len(words_found)
         # If number of dictionary words is greater than the current greatest, update matches
         if num_found > matches[0]:
