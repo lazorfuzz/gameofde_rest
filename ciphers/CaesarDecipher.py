@@ -1,4 +1,4 @@
-from ciphers.Dictionaries import dictionarylookup
+from ciphers.Dictionaries import trie_search
 
 specialCase = ' 1234567890_=~!@#$%^&*()_+,./?:;"*-'
 
@@ -24,24 +24,20 @@ def lookup(array, language):
                 return True
     return False
 
-
-# MAIN FUNCTION THAT PUTS IT ALL TOGETHER
-def decrypt(cipheredText, language):
-    answer = ''
-    answerKey = 0
-    for key in range(-10,10,1):
-        decipheredMessage = shift(cipheredText, key)  # SHIFT THE MESSAGE
-        messageSplit = decipheredMessage.split()      # BREAK DOWN WORD BY WORD FOR DICTIONARY LOOKUP
-        if lookup(messageSplit, language):                      # LOOK UP IN DICTIONARY
-            answer = decipheredMessage
-            answerKey = key
-            break
-
-    if len(answer) > 0:
-        return 'After dictionary lookup, Caesar key is {} and message is: \n'.format(answerKey) + answer
-    elif len(cipheredText) > 0:
-        return 'That was not Caesar ciphering'
-    else:
-        return 'Make sure you gave me the message'
+def decrypt(cipher, language):
+    '''Takes a cipher, tries 26 shifts, and returns the answer containing the most dictionary words'''
+    # Create a tuple representing the values: (number_of_dictionary_words_found, shift_key)
+    matches = (0, 0)
+    for key in range(-13,13,1):
+        shifted = shift(cipher, key)
+        words_found = trie_search(shifted, language)
+        num_found = len(words_found)
+        # If number of dictionary words is greater than the current greatest, update matches
+        if num_found > matches[0]:
+            matches = (num_found, key)
+    # If none of the shifts yielded any dictionary words
+    if matches[0] == 0 and matches[1] == 0:
+        return 'Failed to decipher.'
+    return shift(cipher, matches[1])
 
 
