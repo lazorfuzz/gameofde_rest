@@ -26,6 +26,7 @@ api.add_resource(mainControllers.OrganizationController, '/orgs/<org_name>')
 api.add_resource(mainControllers.NewsController, '/news/<org_name>')
 
 api.add_resource(mainControllers.CaesarController, '/caesar')
+api.add_resource(mainControllers.NoAuthCaesarController, '/test_caesar')
 api.add_resource(mainControllers.CheckSolutionController, '/solutions')
 api.add_resource(mainControllers.SavedSolutionsController, '/saved_solutions')
 

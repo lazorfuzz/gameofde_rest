@@ -14,8 +14,8 @@ def shift(text, s, lang = 'en'):
             else: result += chr(abs(ord(char) + s))
         else: 
             if lang == 'en': result += chr((ord(char) + s - 97) % 26 + 97) 
-            else: result += chr(abso(ord(char) + s))
-    return result 
+            else: result += chr(abs(ord(char) + s))
+    return result
 
 
 # WE ARE TAKING ARRAY OF WORDS AND CHECK THEM ONE BY ONE IN THE DICTIONARY
@@ -44,4 +44,4 @@ def decrypt(cipher, language):
     # If none of the shifts yielded any dictionary words, return fail
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
-    return shift(cipher, matches[1])
+    return shift(cipher, matches[1], language)

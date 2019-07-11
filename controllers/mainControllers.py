@@ -56,6 +56,17 @@ class CaesarController(Resource):
       traceback.print_exc()
       return generic_400(str(e))
   
+class NoAuthCaesarController(Resource):
+  def post(self):
+    args = parser.parse_args()
+    try:
+      cipher = args['cipher']
+      deciphered = decrypt(cipher, args['lang'])
+      return {'result': deciphered}
+    except Exception as e:
+      traceback.print_exc()
+      return generic_400(str(e))
+  
 class OrganizationController(Resource):
   method_decorators = [authenticate]
   def get(self, org_name):
