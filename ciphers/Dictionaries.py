@@ -15,11 +15,14 @@ class LanguageTrie:
     lang (str): The language this trie searches.
     preimport (bool): Import trie from JSON on initialization.
     '''
-    trie = {}
 
+    trie = {}
+    preimport = True
+    
     def __init__(self, lang = 'en', preimport = True):
         '''The trie constructor.'''
         self.lang = lang
+        self.preimport = preimport
         if preimport:
             self.import_trie(lang)
 

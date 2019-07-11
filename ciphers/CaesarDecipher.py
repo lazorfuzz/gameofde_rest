@@ -34,13 +34,17 @@ def decrypt(cipher, language):
     the answer containing the most dictionary words'''
     # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key)
     matches = (0, 0)
-    for key in range(-13,13,1):
-        shifted = shift(cipher, key, language)
-        words_found = trie_search(shifted, language)
-        num_found = len(words_found)
-        # If number of dictionary words is greater than the current greatest, update matches
-        if num_found > matches[0]:
-            matches = (num_found, key)
+    preimported_langs = ['en', 'es', 'ar', 'ru']
+    if not language == 'idk':
+        preimported_langs = [langauge]
+    for lang in preimported_langs:
+        for key in range(-13,13,1):
+            shifted = shift(cipher, key, lang)
+            words_found = trie_search(shifted, lang)
+            num_found = len(words_found)
+            # If number of dictionary words is greater than the current greatest, update matches
+            if num_found > matches[0]:
+                matches = (num_found, key)
     # If none of the shifts yielded any dictionary words, return fail
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
