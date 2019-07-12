@@ -1,30 +1,39 @@
 from flask_restful import Resource, reqparse
 from database import db
-from models import User, AuthToken, Organization
-from cipher_helper import decipher
+from models import User, AuthToken, Organization, Solution, SavedSolution
+from ciphers.CaesarDecipher import decrypt
 from functools import wraps
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+import traceback
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('cipher')
 parser.add_argument('lang')
+parser.add_argument('solution')
+parser.add_argument('org_id')
+parser.add_argument('user_id')
 parser.add_argument('name')
-parser.add_argument('Auth-Token', location='headers')
+parser.add_argument('Authorization', location='headers')
 
 def this_user():
-  token = parser.parse_args()['Auth-Token']
+  token = AuthToken.query.filter_by(data=parser.parse_args()['Authorization']).first()
   user = User.query.filter_by(id=token.user_id).first()
   return user
+
+def generic_400(message='Could not understand request'):
+  return {'status': 'error', 'message': message}, 400
 
 def authenticate(func):
   @wraps(func)
   def wrapper(*args, **kwargs):
     if not getattr(func, 'authenticated', True):
       return func(*args, **kwargs)
-    token = parser.parse_args()['Auth-Token']
+    token = parser.parse_args()['Authorization']
     auth_token = AuthToken.query.filter_by(data=token).first()
     if auth_token:
       return func(*args, **kwargs)
-    return {'status': 'error', 'message': 'Invalid auth token.'}, 401
+    return {'status': 'error', 'message': 'Invalid auth token.'}, 403
   return wrapper
 
 class CaesarController(Resource):
@@ -32,8 +41,31 @@ class CaesarController(Resource):
   # Handle cipher entry
   def post(self):
     args = parser.parse_args()
-    print('CIPHER', args['cipher'])
-    return {'result': decipher(args['cipher'], args['lang'])}
+    try:
+      cipher = args['cipher']
+      # solution = Solution.query.filter_by(cipher=cipher).first()
+      # if solution:
+        # return {'result': solution.solution}
+      current_user = this_user()
+      deciphered = decrypt(cipher, args['lang'])
+      new_solution = Solution(cipher, args['lang'], deciphered, current_user.id, current_user.org_id)
+      db.session.add(new_solution)
+      db.session.commit()
+      return {'result': deciphered}
+    except Exception as e:
+      traceback.print_exc()
+      return generic_400(str(e))
+  
+class NoAuthCaesarController(Resource):
+  def post(self):
+    args = parser.parse_args()
+    try:
+      cipher = args['cipher']
+      deciphered = decrypt(cipher, args['lang'])
+      return {'result': deciphered}
+    except Exception as e:
+      traceback.print_exc()
+      return generic_400(str(e))
   
 class OrganizationController(Resource):
   method_decorators = [authenticate]
@@ -52,8 +84,7 @@ class OrganizationController(Resource):
     db.session.add(new_org)
     db.session.commit()
     # Make user the admin of the new organization
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
-    req_user = User.query.filter_by(id=token.user_id).first()
+    req_user = this_user()
     new_org_id = Organization.query.filter_by(name=org_name).first().id
     req_user.org_id = new_org_id
     req_user.role = 'admin'
@@ -63,10 +94,9 @@ class OrganizationController(Resource):
   def put(self, org_name):
     args = parser.parse_args()
     org = Organization.query.filter_by(name=org_name).first_or_404()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
-    req_user = User.query.filter_by(id=token.user_id).first()
+    req_user = this_user()
     # Only allow update if the user is an admin of the organization
-    if req_user.role == 'admin' and req_user.org_id == org.id:
+    if req_user.role == 'admin' and int(req_user.org_id) == int(org.id):
       if args['name']: org.name = args['name']
       db.session.commit()
       return { 'id': org.id, 'name': org.name }
@@ -77,3 +107,51 @@ class OrganizationList(Resource):
     orgs = Organization.query.all()
     orgs_list = list(map(lambda o: { 'name': o.name, 'id': o.id }, orgs))
     return orgs_list
+
+class NewsController(Resource):
+  def get(self, org_name):
+    try:
+      news_url='https://news.google.com/news/rss/search?q=%s' % org_name
+      with urlopen(news_url) as client:
+        xml_page = client.read()
+      page=BeautifulSoup(xml_page, 'xml')
+      news_list=page.findAll('item')
+      return list(map(lambda n: {'title': n.title.text, 'link': n.link.text, 'date': n.pubDate.text}, news_list))
+    except:
+      return {'status': 'error', 'message': 'News not found!'}, 404
+
+class CheckSolutionController(Resource):
+  method_decorators = [authenticate]
+  def post(self):
+    try:
+      args = parser.parse_args()
+      cipher = args['cipher']
+      solution = Solution.query.filter_by(cipher=cipher).first_or_404()
+      return {'id': solution.id, 'cipher': solution.cipher, 'lang': solution.lang, 'solution': solution.solution, user_id: 'solution.user_id', org_id: 'solution.org_id'}
+    except Exception as e:
+      return generic_400(str(e))
+
+class SavedSolutionsController(Resource):
+  method_decorators = [authenticate]
+  def get(self):
+    try:
+      current_user = this_user()
+      saved_solutions = SavedSolution.query.filter_by(user_id=current_user.id).all()
+      return list(map(lambda s: {'id': solution.id, 'cipher': solution.cipher, 'lang': solution.lang, 'solution': solution.solution, user_id: 'solution.user_id'}, saved_solutions))
+    except Exception as e:
+      return generic_400(str(e))
+  
+  def post(self):
+    try:
+      args = parser.parse_args()
+      # Check if saved solution already exists
+      existing = SavedSolution.query.filter_by(cipher=args['cipher']).first()
+      if existing:
+        return {'status': 'error', 'message': 'Solution already saved!'}, 401
+      # Create new saved solution
+      new_saved_solution = SavedSolution(args['cipher'], args['lang'], args['solution'], args['user_id'])
+      db.session.add(new_saved_solution)
+      db.session.commit()
+      return {'status': 'success'}, 201
+    except Exception as e:
+      return generic_400(str(e))

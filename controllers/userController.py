@@ -2,11 +2,11 @@ from flask_restful import Resource, reqparse
 from uuid import uuid4
 from hashlib import sha256
 from database import db
-from models import User, AuthToken
+from models import User, AuthToken, Organization
 from controllers.mainControllers import authenticate
 
 parser = reqparse.RequestParser(bundle_errors=True)
-parser.add_argument('Auth-Token', location='headers')
+parser.add_argument('Authorization', location='headers')
 parser.add_argument('username')
 parser.add_argument('password')
 parser.add_argument('email')
@@ -35,7 +35,9 @@ class LoginController(Resource):
       auth_token = AuthToken(user, token_data)
       db.session.add(auth_token)
       db.session.commit()
-      return {'token': token_data}, 200
+      # Get user's org
+      org = Organization.query.filter_by(id=user.org_id).first();
+      return {'token': token_data, 'user': {'username': user.username, 'id': user.id, 'org_id': user.org_id, 'email': user.email, 'organization': org.name, 'role': user.role}}, 200
     else:
       return {'status': 'error', 'message': 'Invalid username or password.'}
 
@@ -69,27 +71,31 @@ class UserController(Resource):
   
   def put(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow update if the user is modifying self, or the user is an admin modifiying another user in the same org
-    if req_user.id == user_id or req_user.role == 'admin' and target_user.org_id == req_user.org_id:
+    if int(req_user.id) == int(user_id) or req_user.role == 'admin' and target_user.org_id == req_user.org_id:
       if args['username']: target_user.username = args['username']
       if args['org_id']: target_user.org_id = args['org_id']
       if args['email']: target_user.email = args['email']
       if args['password']: target_user.email = args['password']
       db.session.commit()
-      return {'id': target_user.id, 'username': target_user.username, 'email': target_user.email, 'role': target_user.role, 'org_id': target_user.org_id}, 200
+      org = Organization.query.filter_by(id=target_user.org_id).first()
+      return {'id': target_user.id, 'username': target_user.username, 'email': target_user.email, 'role': target_user.role, 'org_id': target_user.org_id, 'organization': org.name}, 200
     return {'status': 'error', 'message': 'You do not have permission to modify this user!'}, 401
   
   def delete(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Auth-Token']).first()
+    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = User.query.filter_by(id=token.user_id).first()
     # Only allow delete if the user is deleting self, or the user is an admin deleting another user in the same org
-    if req_user.id == user_id or req_user.role == 'admin' and target_user.org_id == req_user.org_id:
+    if int(req_user.id) == int(user_id) or req_user.role == 'admin' and int(target_user.org_id) == int(req_user.org_id):
       db.session.delete(target_user)
+      # Delete the target user's token
+      token = AuthToken.query.filter_by(user_id=user_id).first()
+      db.session.delete(token)
       db.session.commit()
       return {'status': 'success'}
     return {'status': 'error', 'message': 'You do not have permission to delete this user!'}, 401
