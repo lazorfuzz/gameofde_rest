@@ -36,7 +36,7 @@ def decrypt(cipher, language):
     matches = (0, 0)
     preimported_langs = ['en', 'es', 'ar', 'ru']
     if not language == 'idk':
-        preimported_langs = [langauge]
+        preimported_langs = [language]
     for lang in preimported_langs:
         for key in range(-13,13,1):
             shifted = shift(cipher, key, lang)

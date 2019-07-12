@@ -34,5 +34,5 @@ def test(sentence, lang, iterations):
   print ('-' * 50)
 
 if __name__ == '__main__':
-  test('the quick brown fox jumps over the lazy red dog.', 'en', 50)
-  test('the quick brown fox jumps over the lazy red dog. ' * 5, 'en', 50)
+  test('the quick brown fox jumps over the lazy red dog.', 'en', 100)
+  test('the quick brown fox jumps over the lazy red dog. ' * 5, 'en', 100)
