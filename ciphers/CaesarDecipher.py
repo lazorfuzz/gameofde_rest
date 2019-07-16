@@ -33,7 +33,7 @@ def decrypt(cipher, language):
     '''Takes a cipher, tries 26 shifts, and returns
     the answer containing the most dictionary words'''
     # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key)
-    matches = (0, 0)
+    matches = (0, 0, 'en')
     preimported_langs = ['en', 'es', 'ar', 'ru']
     if not language == 'idk':
         preimported_langs = [language]
@@ -44,8 +44,8 @@ def decrypt(cipher, language):
             num_found = len(words_found)
             # If number of dictionary words is greater than the current greatest, update matches
             if num_found > matches[0]:
-                matches = (num_found, key)
+                matches = (num_found, key, lang)
     # If none of the shifts yielded any dictionary words, return fail
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
-    return shift(cipher, matches[1], language)
+    return shift(cipher, matches[1], matches[2])
