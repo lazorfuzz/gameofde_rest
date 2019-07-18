@@ -41,6 +41,8 @@ def populate_db():
       db.session.add(Organization('NSA'))
       db.session.add(User('leon', sha256('test'.encode()).hexdigest(), 'leon@email.net', 'admin', 5))
       db.session.add(User('student', sha256('ist440'.encode()).hexdigest(), 'student@psu.edu', 'admin', 4))
+      db.session.add(User('bob', sha256('lazar'.encode()).hexdigest(), 'boblazar@ufosarereal.org', 'standard', 4))
+      db.session.add(User('john', sha256('smith'.encode()).hexdigest(), 'johnsmith@psu.edu', 'standard', 4))
       db.session.commit()
     except: pass
 
