@@ -31,8 +31,16 @@ def lookup(array, language):
 
 def decrypt(cipher, language):
     '''Takes a cipher, tries 26 shifts, and returns
-    the answer containing the most dictionary words'''
-    # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key)
+    the answer containing the most dictionary words and the detected language.
+
+    decrypt(cipher, language) --> result, lang
+    
+    Parameters:
+
+    cipher (str): The string to be decrypted
+
+    language (str): The 2-letter language code'''
+    # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key, lang)
     matches = (0, 0, 'en')
     preimported_langs = ['en', 'es', 'ar', 'ru']
     if not language == 'idk':
@@ -48,4 +56,4 @@ def decrypt(cipher, language):
     # If none of the shifts yielded any dictionary words, return fail
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
-    return shift(cipher, matches[1], matches[2])
+    return shift(cipher, matches[1], matches[2]), matches[2]

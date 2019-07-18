@@ -43,15 +43,15 @@ class CaesarController(Resource):
     args = parser.parse_args()
     try:
       cipher = args['cipher']
-      # solution = Solution.query.filter_by(cipher=cipher).first()
-      # if solution:
-        # return {'result': solution.solution}
+      solution = Solution.query.filter_by(cipher=cipher).first()
+      if solution:
+        return {'result': solution.solution, 'lang': solution.lang, 'cached': True}
       current_user = this_user()
-      deciphered = decrypt(cipher, args['lang'])
-      new_solution = Solution(cipher, args['lang'], deciphered, current_user.id, current_user.org_id)
+      deciphered, language = decrypt(cipher, args['lang'])
+      new_solution = Solution(cipher, language, deciphered, current_user.id, current_user.org_id)
       db.session.add(new_solution)
       db.session.commit()
-      return {'result': deciphered}
+      return {'result': deciphered, 'lang': language}
     except Exception as e:
       traceback.print_exc()
       return generic_400(str(e))
@@ -61,8 +61,8 @@ class NoAuthCaesarController(Resource):
     args = parser.parse_args()
     try:
       cipher = args['cipher']
-      deciphered = decrypt(cipher, args['lang'])
-      return {'result': deciphered}
+      deciphered, language = decrypt(cipher, args['lang'])
+      return {'result': deciphered, 'lang': language}
     except Exception as e:
       traceback.print_exc()
       return generic_400(str(e))

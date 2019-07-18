@@ -48,14 +48,15 @@ class CreateAccountController(Resource):
       # Check if user exists
       user = User.query.filter_by(username=args['username']).first()
       if user:
-        return {'status': 'error', 'message': 'User already exists!'}, 401
+        return {'message': 'Username taken!'}, 401
       if not args['username'] or not args['password'] or not args['email']:
-        return {'status': 'error', 'message': 'Please fill in all fields!'}, 401
+        return {'message': 'Please fill in all fields!'}, 401
       # Create user
       new_user = User(args['username'], sha256(args['password'].encode()).hexdigest(), args['email'], args['role'], args['org_id'])
       db.session.add(new_user)
       db.session.commit()
       return {'status': 'success'}, 201
+      
 class UserList(Resource):
   method_decorators = [authenticate]
   def get(self):
@@ -83,7 +84,7 @@ class UserController(Resource):
       db.session.commit()
       org = Organization.query.filter_by(id=target_user.org_id).first()
       return {'id': target_user.id, 'username': target_user.username, 'email': target_user.email, 'role': target_user.role, 'org_id': target_user.org_id, 'organization': org.name}, 200
-    return {'status': 'error', 'message': 'You do not have permission to modify this user!'}, 401
+    return {'message': 'You do not have permission to modify this user!'}, 401
   
   def delete(self, user_id):
     args = parser.parse_args()
@@ -98,4 +99,4 @@ class UserController(Resource):
       db.session.delete(token)
       db.session.commit()
       return {'status': 'success'}
-    return {'status': 'error', 'message': 'You do not have permission to delete this user!'}, 401
+    return {'message': 'You do not have permission to delete this user!'}, 401

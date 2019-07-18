@@ -13,6 +13,7 @@ class LanguageTrie:
     Parameters:
 
     lang (str): The language this trie searches.
+
     preimport (bool): Import trie from JSON on initialization.
     '''
 
@@ -125,3 +126,4 @@ def dictionarylookup(language, word):
                     return True
                     break
     return False
+    
