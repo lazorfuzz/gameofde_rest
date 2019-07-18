@@ -137,7 +137,7 @@ class SavedSolutionsController(Resource):
     try:
       current_user = this_user()
       saved_solutions = SavedSolution.query.filter_by(user_id=current_user.id).all()
-      return list(map(lambda s: {'id': solution.id, 'cipher': solution.cipher, 'lang': solution.lang, 'solution': solution.solution, user_id: 'solution.user_id'}, saved_solutions))
+      return list(map(lambda s: {'id': s.id, 'cipher': s.cipher, 'lang': s.lang, 'solution': s.solution, user_id: s.user_id}, saved_solutions))
     except Exception as e:
       return generic_400(str(e))
   
