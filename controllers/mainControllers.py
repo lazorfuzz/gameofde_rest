@@ -1,6 +1,12 @@
 from flask_restful import Resource, reqparse
+import hmac
+from hashlib import sha256
+from base64 import b64decode, b64encode
+import json
+from secrets import secret
+from datetime import datetime
 from database import db
-from models import User, AuthToken, Organization, Solution, SavedSolution
+from models import User, Organization, Solution, SavedSolution
 from ciphers.CaesarDecipher import decrypt
 from functools import wraps
 from bs4 import BeautifulSoup
@@ -16,13 +22,41 @@ parser.add_argument('user_id')
 parser.add_argument('name')
 parser.add_argument('Authorization', location='headers')
 
+def generate_token(user):
+  '''Generates a JWT-like auth token'''
+  data = {'id': user.id, 'username': user.username, 'role': user.role, 'org_id': user.org_id, 'created': str(datetime.now())}
+  # Serialize user data to JSON, then encode to base64
+  b64_data = b64encode(json.dumps(data).encode())
+  # Generate a signature with SHA256, then encode to base64
+  dig = hmac.new(secret.encode(), msg=b64_data, digestmod=sha256).digest()
+  signature = b64encode(dig)
+  # Return the token in the format: {user_data}.{signature}
+  return '%s.%s' % (b64_data.decode(), signature.decode())
+
+def read_token(token):
+  '''Validates the token payload with the signature, and returns 
+  a dict containing the user data in the payload'''
+  try:
+    token = token.split('.')
+    payload = token[0].encode()
+    # Hash the payload and get the signature
+    dig = hmac.new(secret.encode(), msg=payload, digestmod=sha256).digest()
+    signature = b64encode(dig)
+    # If the signature matches the one provided, return the user data
+    if signature.decode() == token[1]:
+      data = b64decode(payload).decode()
+      user_data = json.loads(data)
+      return user_data
+    return None
+  except: return None
+
 def this_user():
-  token = AuthToken.query.filter_by(data=parser.parse_args()['Authorization']).first()
-  user = User.query.filter_by(id=token.user_id).first()
+  token = parser.parse_args()['Authorization']
+  user = read_token(token)
   return user
 
 def generic_400(message='Could not understand request'):
-  return {'status': 'error', 'message': message}, 400
+  return {'message': message}, 400
 
 def authenticate(func):
   @wraps(func)
@@ -30,10 +64,10 @@ def authenticate(func):
     if not getattr(func, 'authenticated', True):
       return func(*args, **kwargs)
     token = parser.parse_args()['Authorization']
-    auth_token = AuthToken.query.filter_by(data=token).first()
-    if auth_token:
+    user = read_token(token)
+    if user != None:
       return func(*args, **kwargs)
-    return {'status': 'error', 'message': 'Invalid auth token.'}, 403
+    return {'message': 'Invalid auth token.'}, 403
   return wrapper
 
 class CaesarController(Resource):
@@ -48,7 +82,7 @@ class CaesarController(Resource):
         return {'result': solution.solution, 'lang': solution.lang, 'cached': True}
       current_user = this_user()
       deciphered, language = decrypt(cipher, args['lang'])
-      new_solution = Solution(cipher, language, deciphered, current_user.id, current_user.org_id)
+      new_solution = Solution(cipher, language, deciphered, current_user['id'], current_user['org_id'])
       db.session.add(new_solution)
       db.session.commit()
       return {'result': deciphered, 'lang': language}
@@ -86,8 +120,9 @@ class OrganizationController(Resource):
     # Make user the admin of the new organization
     req_user = this_user()
     new_org_id = Organization.query.filter_by(name=org_name).first().id
-    req_user.org_id = new_org_id
-    req_user.role = 'admin'
+    user = User.query.filter_by(id=req_user['id']).first()
+    user.org_id = new_org_id
+    user.role = 'admin'
     db.session.commit()
     return {'status': 'success'}, 201
   
@@ -96,7 +131,7 @@ class OrganizationController(Resource):
     org = Organization.query.filter_by(name=org_name).first_or_404()
     req_user = this_user()
     # Only allow update if the user is an admin of the organization
-    if req_user.role == 'admin' and int(req_user.org_id) == int(org.id):
+    if req_user['role'] == 'admin' and int(req_user['org_id']) == int(org.id):
       if args['name']: org.name = args['name']
       db.session.commit()
       return { 'id': org.id, 'name': org.name }
@@ -136,9 +171,10 @@ class SavedSolutionsController(Resource):
   def get(self):
     try:
       current_user = this_user()
-      saved_solutions = SavedSolution.query.filter_by(user_id=current_user.id).all()
+      saved_solutions = SavedSolution.query.filter_by(user_id=current_user['id']).all()
       return list(map(lambda s: {'id': s.id, 'cipher': s.cipher, 'lang': s.lang, 'solution': s.solution, 'user_id': s.user_id}, saved_solutions))
     except Exception as e:
+      traceback.print_exc()
       return generic_400(str(e))
   
   def post(self):
@@ -162,7 +198,7 @@ class SavedSolutionController(Resource):
     try:
       current_user = this_user()
       solution = SavedSolution.query.filter_by(id=solution_id).first_or_404()
-      if solution.user_id == current_user.id:
+      if solution.user_id == current_user['id']:
         return {'id': solution.id, 'cipher': solution.cipher, 'solution': solution.solution, 'user_id': solution.user_id}
       return {'message': 'You do not have permission to access this saved solution!'}, 401
     except Exception as e:
@@ -172,7 +208,7 @@ class SavedSolutionController(Resource):
     try:
       current_user = this_user()
       solution = SavedSolution.query.filter_by(id=solution_id).first_or_404()
-      if solution.user_id == current_user.id:
+      if solution.user_id == current_user['id']:
         db.session.delete(solution)
         db.session.commit()
       return {'message': 'Solution deleted!'}

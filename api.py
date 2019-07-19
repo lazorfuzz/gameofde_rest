@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
 from controllers import userController, mainControllers
 from database import db
-from models import Organization, User, AuthToken
+from models import Organization, User
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/db/gameofde.db'
