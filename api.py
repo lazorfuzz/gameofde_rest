@@ -29,6 +29,7 @@ api.add_resource(mainControllers.CaesarController, '/caesar')
 api.add_resource(mainControllers.NoAuthCaesarController, '/test_caesar')
 api.add_resource(mainControllers.CheckSolutionController, '/solutions')
 api.add_resource(mainControllers.SavedSolutionsController, '/saved_solutions')
+api.add_resource(mainControllers.SavedSolutionController, '/saved_solutions/<solution_id>')
 
 def populate_db():
   with app.app_context():

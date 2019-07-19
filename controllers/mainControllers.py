@@ -155,3 +155,26 @@ class SavedSolutionsController(Resource):
       return {'status': 'success'}, 201
     except Exception as e:
       return generic_400(str(e))
+
+class SavedSolutionController(Resource):
+  method_decorators = [authenticate]
+  def get(self, solution_id):
+    try:
+      current_user = this_user()
+      solution = SavedSolution.query.filter_by(id=solution_id).first_or_404()
+      if solution.user_id == current_user.id:
+        return {'id': solution.id, 'cipher': solution.cipher, 'solution': solution.solution, 'user_id': solution.user_id}
+      return {'message': 'You do not have permission to access this saved solution!'}, 401
+    except Exception as e:
+      return generic_400(str(e))
+  
+  def delete(self, solution_id):
+    try:
+      current_user = this_user()
+      solution = SavedSolution.query.filter_by(id=solution_id).first_or_404()
+      if solution.user_id == current_user.id:
+        db.session.delete(solution)
+        db.session.commit()
+      return {'message': 'Solution deleted!'}
+    except Exception as e:
+      return generic_400(str(e))
