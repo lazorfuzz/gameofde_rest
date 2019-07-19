@@ -1,4 +1,4 @@
-from ciphers.Dictionaries import trie_search
+from ciphers.Dictionaries import trie_search, lang_files
 
 special_case = ' 1234567890_=~!@#$%^&*()_+,./?:;"*-\n'
 
@@ -29,9 +29,10 @@ def lookup(array, language):
                 return True
     return False
 
-def decrypt(cipher, language):
+def decrypt(cipher, language = 'idk'):
     '''Takes a cipher, tries 26 shifts, and returns
-    the answer containing the most dictionary words and the detected language.
+    the answer containing the most dictionary words and the associated lang code
+    for that dictionary.
 
     decrypt(cipher, language) --> result, lang
     
@@ -42,7 +43,9 @@ def decrypt(cipher, language):
     language (str): The 2-letter language code'''
     # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key, lang)
     matches = (0, 0, 'en')
-    preimported_langs = ['en', 'es', 'ar', 'ru']
+    # Get a list of lang codes with preimported tries
+    preimported_langs = list(filter(lambda l: lang_files.get(l)['trie'].preimport == True, lang_files.keys()))
+    # By default, language will be 'idk'. If not, search only in that langauge
     if not language == 'idk':
         preimported_langs = [language]
     for lang in preimported_langs:
@@ -56,4 +59,5 @@ def decrypt(cipher, language):
     # If none of the shifts yielded any dictionary words, return fail
     if matches[0] == 0 and matches[1] == 0:
         return 'Failed to decipher.'
+    # Return deciphered_text, lang_code
     return shift(cipher, matches[1], matches[2]), matches[2]
