@@ -68,7 +68,7 @@ class UserController(Resource):
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = this_user()
     # Only allow update if the user is modifying self, or the user is an admin modifiying another user in the same org
-    if int(req_user.id) == int(user_id) or req_user.role == 'admin' and target_user.org_id == req_user.org_id:
+    if int(req_user['id']) == int(user_id) or req_user['admin'] == 'admin' and target_user.org_id == req_user['org_id']:
       if args['username']: target_user.username = args['username']
       if args['org_id']: target_user.org_id = args['org_id']
       if args['email']: target_user.email = args['email']

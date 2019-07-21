@@ -12,8 +12,8 @@ class UsersTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = app
         self.client = self.app.test_client
-        self.test_user = {'username': 'testuser', 'password': 'testpass', 'email': 'test@test.com',
-            'role': 'standard', 'org_id': 1}
+        self.test_user = {'username': 'testuser', 'password': 'testpass', 'email': 'test@test.com', 'role': 'standard', 'org_id': 1}
+        self.token = 'eyJpZCI6IDIsICJ1c2VybmFtZSI6ICJzdHVkZW50IiwgInJvbGUiOiAiYWRtaW4iLCAib3JnX2lkIjogNCwgImNyZWF0ZWQiOiAiMjAxOS0wNy0yMSAwNTowMDoyMS4zNDkzNjYifQ==.kOPOtfigivgmSzxMhZjiVi0lS3+2CS285IgVjRVxY9c='
         with self.app.app_context():
             # create all tables
             db.create_all()
@@ -35,6 +35,11 @@ class UsersTestCase(unittest.TestCase):
         """Test API returns 403 for an edit user request without authorization (PUT)"""
         res = self.client().put('/users/2', data={'password': 'newpass'})
         self.assertEqual(res.status_code, 403)
+    
+    def test_edit_user(self):
+        """Test API can edit a user (PUT)"""
+        res = self.client().put('/users/2', data={'password': 'newpass'}, headers={'Authorization': self.token})
+        self.assertEqual(res.status_code, 200)
 
     def tearDown(self):
         """teardown all initialized variables."""
