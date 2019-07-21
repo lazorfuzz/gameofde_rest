@@ -17,10 +17,15 @@ http POST http://127.0.0.1:5000/create_account username="USERNAME" password="PAS
 # Logging in:
 http POST http://127.0.0.1:5000/login username="USERNAME" password="PASSWORD"
 # Submitting a cipher:
-http POST http://127.0.0.1:5000/caesar 'Authorization:AUTH_TOKEN_HERE' cipher='hello' lang='en'
+http POST http://127.0.0.1:5000/test_caesar cipher='hello' lang='en'
 # Getting a specific organization:
 http GET http://127.0.0.1:5000/orgs/NSA 'Authorization:AUTH_TOKEN_HERE'
 # Creating a new organization:
 http POST http://127.0.0.1:5000/orgs/GCHQ 'Authorization:AUTH_TOKEN_HERE'
 
+```
+
+## Unit tests
+```python
+python3 tests.py
 ```

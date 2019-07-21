@@ -17,7 +17,6 @@ def shift(text, s, lang = 'en'):
             else: result += chr(abs(ord(char) + s))
     return result
 
-
 # WE ARE TAKING ARRAY OF WORDS AND CHECK THEM ONE BY ONE IN THE DICTIONARY
 def lookup(array, language):
     for index in range(len(array) - 1):
@@ -28,6 +27,8 @@ def lookup(array, language):
             if dictionarylookup(language, array[index]):    # USE DICTIONARY MODULE TO LOAD THE PROPER FILE
                 return True
     return False
+
+
 
 def decrypt(cipher, language = 'idk'):
     '''Takes a cipher, tries 26 shifts, and returns
@@ -42,8 +43,8 @@ def decrypt(cipher, language = 'idk'):
 
     language (str): The 2-letter language code'''
     # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key, lang)
-    matches = (0, 0, 'en')
-    # Get a list of lang codes with preimported tries
+    best_match = (0, 0, 'en')
+    # Get a list of lang codes from preimported tries
     preimported_langs = list(filter(lambda l: lang_files.get(l)['trie'].preimport == True, lang_files.keys()))
     # By default, language will be 'idk'. If not, search only in that langauge
     if not language == 'idk':
@@ -54,10 +55,10 @@ def decrypt(cipher, language = 'idk'):
             words_found = trie_search(shifted, lang)
             num_found = len(words_found)
             # If number of dictionary words is greater than the current greatest, update matches
-            if num_found > matches[0]:
-                matches = (num_found, key, lang)
+            if num_found > best_match[0]:
+                best_match = (num_found, key, lang)
     # If none of the shifts yielded any dictionary words, return fail
-    if matches[0] == 0 and matches[1] == 0:
-        return 'Failed to decipher.'
+    if best_match[0] == 0 and best_match[1] == 0:
+        return 'Failed to decipher.', 'idk'
     # Return deciphered_text, lang_code
-    return shift(cipher, matches[1], matches[2]), matches[2]
+    return shift(cipher, best_match[1], best_match[2]), best_match[2]

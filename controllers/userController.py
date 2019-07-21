@@ -65,9 +65,8 @@ class UserController(Resource):
   
   def put(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
-    req_user = User.query.filter_by(id=token.user_id).first()
+    req_user = this_user()
     # Only allow update if the user is modifying self, or the user is an admin modifiying another user in the same org
     if int(req_user.id) == int(user_id) or req_user.role == 'admin' and target_user.org_id == req_user.org_id:
       if args['username']: target_user.username = args['username']
@@ -81,15 +80,11 @@ class UserController(Resource):
   
   def delete(self, user_id):
     args = parser.parse_args()
-    token = AuthToken.query.filter_by(data=args['Authorization']).first()
     target_user = User.query.filter_by(id=user_id).first_or_404()
-    req_user = User.query.filter_by(id=token.user_id).first()
+    req_user = this_user()
     # Only allow delete if the user is deleting self, or the user is an admin deleting another user in the same org
-    if int(req_user.id) == int(user_id) or req_user.role == 'admin' and int(target_user.org_id) == int(req_user.org_id):
+    if int(req_user['id']) == int(user_id) or req_user['role'] == 'admin' and int(target_user.org_id) == int(req_user['org_id']):
       db.session.delete(target_user)
-      # Delete the target user's token
-      token = AuthToken.query.filter_by(user_id=user_id).first()
-      db.session.delete(token)
       db.session.commit()
       return {'status': 'success'}
     return {'message': 'You do not have permission to delete this user!'}, 401

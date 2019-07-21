@@ -62,6 +62,12 @@ class SavedSolution(db.Model):
     def __repr__(self):
         return '<SavedSolution %d>' % self.id
 
+class SharedSolution(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    to_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    solution_id = db.Column(db.Integer, db.ForeignKey('saved_solution.id'))
+
 if __name__ == '__main__':
     db.create_all()
     db.session.commit()

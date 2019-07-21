@@ -213,4 +213,5 @@ class SavedSolutionController(Resource):
         db.session.commit()
       return {'message': 'Solution deleted!'}
     except Exception as e:
+      traceback.print_exc()
       return generic_400(str(e))

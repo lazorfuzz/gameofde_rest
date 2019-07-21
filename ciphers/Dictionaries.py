@@ -38,9 +38,9 @@ class LanguageTrie:
         if next_node:
             self.add_word(next_node, word, idx + 1)
         else:
-            # The current node does not have a child node for the current letter
+            # If the current node does not have a child node for the current letter,
+            # create the new child node for the current letter
             is_leaf = idx == len(word) - 1
-            # Create the new child node for the current letter
             children[word[idx]] = {'chdn': {}, '#': is_leaf}
             if not is_leaf:
                 # If there are more letters to go, add the next letter
@@ -72,7 +72,9 @@ class LanguageTrie:
             # If the trie wasn't preimported, import it now
             self.import_trie(self.lang)
             self.search(word, idx, node)
+            return
         if idx == len(word):
+            # Can't search any further, the word isn't in the dictionary
             return False
         if not node:
             node = self.trie['root']
@@ -93,6 +95,8 @@ class LanguageTrie:
         for lang in lang_files.keys():
             print('Building', lang)
             self.build_trie(lang)
+
+
 
 
 lang_files = {
@@ -154,7 +158,7 @@ def dictionarylookup(language, word):
 # Once the tries are built, add a 'trie' entry to the lang you added earlier:
 # 'lang': {'file': 'Dictionary/lang_50k.txt', 'trie': LangaugeTrie('lang')},
 
-# Beause each nested dict uses about 45 MB of memory, we also included a switch to
+# Because each nested dict uses about 45 MB of memory, we also included a switch to
 # only import the trie from JSON when needed:
 # LanguageTrie(lang, preimport=False)
 # Setting preimport to False when initializing the trie will allow the server to hog less
