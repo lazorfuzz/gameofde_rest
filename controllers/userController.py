@@ -3,7 +3,7 @@ from uuid import uuid4
 from hashlib import sha256
 from database import db
 from models import User, Organization
-from controllers.mainControllers import authenticate, generate_token
+from controllers.mainControllers import authenticate, generate_token, this_user
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('Authorization', location='headers')
