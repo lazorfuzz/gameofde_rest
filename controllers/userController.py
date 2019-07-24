@@ -73,6 +73,7 @@ class UserController(Resource):
       if args['org_id']: target_user.org_id = args['org_id']
       if args['email']: target_user.email = args['email']
       if args['password']: target_user.email = args['password']
+      if args['role']: target_user.role = args['role']
       db.session.commit()
       org = Organization.query.filter_by(id=target_user.org_id).first()
       return {'id': target_user.id, 'username': target_user.username, 'email': target_user.email, 'role': target_user.role, 'org_id': target_user.org_id, 'organization': org.name}, 200
