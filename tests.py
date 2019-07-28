@@ -92,7 +92,7 @@ class SolutionsTestCase(unittest.TestCase):
             db.session.commit()
 
     def test_get_saved_solutions(self):
-        """Test API can brute force a cipher (GET)"""
+        """Test API can retrieve a list of saved cipher solutions (GET)"""
         res = self.client().get('/saved_solutions', headers={'Authorization': self.token})
         self.assertEqual(res.status_code, 200)
     
