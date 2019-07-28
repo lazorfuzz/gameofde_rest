@@ -12,7 +12,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/db/gameofde.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 CORS(app)
 db.init_app(app)
-# db.drop_all(app=app)
+db.drop_all(app=app)
 db.create_all(app=app)
 api = Api(app)
 

@@ -180,10 +180,6 @@ class SavedSolutionsController(Resource):
   def post(self):
     try:
       args = parser.parse_args()
-      # Check if saved solution already exists
-      existing = SavedSolution.query.filter_by(cipher=args['cipher']).first()
-      if existing:
-        return {'status': 'error', 'message': 'Solution already saved!'}, 401
       # Create new saved solution
       new_saved_solution = SavedSolution(args['cipher'], args['lang'], args['solution'], args['user_id'])
       db.session.add(new_saved_solution)
