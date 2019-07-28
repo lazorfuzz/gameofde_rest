@@ -5,30 +5,37 @@ import time
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 class LanguageTrie:
-    '''
-    LanguageTrie(lang_code) --> searchable language trie
-
-    A trie data structure that holds common vocabulary from different languages.
-
-    Parameters:
-
-    lang (str): The language this trie searches.
-
-    preimport (bool): Import trie from JSON on initialization.
-    '''
+    """A trie data struture that holds common vocabulary from different languages.
+    
+    Returns:
+        LanguageTrie -- An instance of the LanguageTrie class
+    """
 
     trie = {}
     preimport = True
     
     def __init__(self, lang = 'en', preimport = True):
-        '''The trie constructor.'''
+        """The initializer for LanguageTrie
+        
+        Keyword Arguments:
+            lang {str} -- The two-letter language code (default: {'en'})
+            preimport {bool} -- Import the trie from JSON upon initialization (default: {True})
+        """
         self.lang = lang
         self.preimport = preimport
         if preimport:
             self.import_trie(lang)
 
     def add_word(self, node, word, idx = 0):
-        '''Adds a word to the trie data structure.'''
+        """Adds a word to the trie
+        
+        Arguments:
+            node {dict} -- The current node to examine
+            word {str} -- The word being added
+        
+        Keyword Arguments:
+            idx {int} -- The character index of the word (default: {0})
+        """
         children = node['chdn']
         # If no more letters to add
         if idx == len(word):
@@ -47,7 +54,11 @@ class LanguageTrie:
                 self.add_word(children.get(word[idx]), word, idx + 1)
 
     def build_trie(self, lang):
-        '''Builds a trie from a language frequency dictionary.'''
+        """Builds a trie from a language frequency dictionary
+        
+        Arguments:
+            lang {str} -- The two-letter language code
+        """
         # Create root node
         self.trie['root'] = {'chdn': {}}
         read_file = lang_files.get(lang)
@@ -61,13 +72,28 @@ class LanguageTrie:
             f.write(json.dumps(self.trie))
     
     def import_trie(self, lang):
-        '''Initializes a trie from JSON.'''
+        """Initializes a trie from JSON
+        
+        Arguments:
+            lang {str} -- The two-letter language code
+        """
         with open('%s/Dictionary/Tries/%s.json' % (dir_path, lang), 'r') as f:
             data = f.read()
         self.trie = json.loads(data)
 
     def search(self, word, idx = 0, node = None):
-        '''Searches for a word in the trie. Returns True if the word was found.'''
+        """Searches for a word in the trie
+        
+        Arguments:
+            word {str} -- A word
+        
+        Keyword Arguments:
+            idx {int} -- The character index of the word (default: {0})
+            node {dict} -- The current node to examine (default: {None})
+        
+        Returns:
+            bool -- Whether the word was found in the dictionary
+        """
         if not self.trie.get('root'):
             # If the trie wasn't preimported, import it now
             self.import_trie(self.lang)
@@ -91,7 +117,8 @@ class LanguageTrie:
             return False
 
     def compile_all(self):
-        '''Builds a JSON file for each language in lang_files.'''
+        """Builds a JSON file for each langauge in lang_files
+        """
         for lang in lang_files.keys():
             print('Building', lang)
             self.build_trie(lang)
@@ -114,14 +141,15 @@ def create_language_tries():
     LanguageTrie().compile_all()
 
 def trie_search(sentence, lang):
-    '''trie_search(sentence, lang) -> list
+    """Get a list of dictionary words from the sentence
     
-    Parameters:
-
-    sentence (str): The cipher string
-    lang (str): Two-letter language code
-
-    Returns a list of words in the sentence that were found in the trie.'''
+    Arguments:
+        sentence {str} -- The sentence to look up
+        lang {str} -- Two-letter language code
+    
+    Returns:
+        list -- List of dictionary words found in the sentence.
+    """
     trie = lang_files.get(lang)['trie']
     word_array = sentence.lower().strip().split()
     return list(filter(lambda w: trie.search(w), word_array))

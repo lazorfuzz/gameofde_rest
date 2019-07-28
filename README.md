@@ -29,3 +29,6 @@ http POST http://127.0.0.1:5000/orgs/GCHQ 'Authorization:AUTH_TOKEN_HERE'
 ```python
 python3 tests.py
 ```
+
+## Documentation
+Take a look at the [docs](docs.md)

@@ -14,8 +14,12 @@ parser.add_argument('role')
 parser.add_argument('org_id')
 
 class LoginController(Resource):
-  # Handle login
   def post(self):
+    """The POST handler for the /login endpoint
+    
+    Returns:
+        dict -- Object containing the token and user details
+    """
     # Get post arguments
     args = parser.parse_args()
     user = User.query.filter_by(username=args['username']).first()
@@ -35,24 +39,33 @@ class LoginController(Resource):
       return {'status': 'error', 'message': 'Invalid username or password.'}
 
 class CreateAccountController(Resource):
-  # Handle create account
   def post(self):
-      args = parser.parse_args()
-      # Check if user exists
-      user = User.query.filter_by(username=args['username']).first()
-      if user:
-        return {'message': 'Username taken!'}, 401
-      if not args['username'] or not args['password'] or not args['email']:
-        return {'message': 'Please fill in all fields!'}, 401
-      # Create user
-      new_user = User(args['username'], sha256(args['password'].encode()).hexdigest(), args['email'], args['role'], args['org_id'])
-      db.session.add(new_user)
-      db.session.commit()
-      return {'status': 'success'}, 201
+    """The POST handler for the /create_account endpoint
+    
+    Returns:
+        dict -- Status message
+    """
+    args = parser.parse_args()
+    # Check if user exists
+    user = User.query.filter_by(username=args['username']).first()
+    if user:
+      return {'message': 'Username taken!'}, 401
+    if not args['username'] or not args['password'] or not args['email']:
+      return {'message': 'Please fill in all fields!'}, 401
+    # Create user
+    new_user = User(args['username'], sha256(args['password'].encode()).hexdigest(), args['email'], args['role'], args['org_id'])
+    db.session.add(new_user)
+    db.session.commit()
+    return {'status': 'success'}, 201
       
 class UserList(Resource):
   method_decorators = [authenticate]
   def get(self):
+    """The GET hanlder for the /users endpoint
+    
+    Returns:
+        list -- List of users
+    """
     users = User.query.all()
     users_list = list(map(lambda u: {'id': u.id, 'username': u.username, 'role': u.role, 'org_id': u.org_id}, users))
     return users_list
@@ -60,10 +73,26 @@ class UserList(Resource):
 class UserController(Resource):
   method_decorators = [authenticate]
   def get(self, user_id):
+    """The GET handler for the /users/<user_id> endpoint
+    
+    Arguments:
+        user_id {int} -- The user's id
+    
+    Returns:
+        dict -- Data about the user
+    """
     user = User.query.filter_by(id=user_id).first_or_404()
     return {'id': user.id, 'username': user.username, 'role': user.role, 'org_id': user.org_id}
   
   def put(self, user_id):
+    """The PUT handler for the /users/<user_id> endpoint
+    
+    Arguments:
+        user_id {int} -- The user's id
+    
+    Returns:
+        dict -- Data about the modified user
+    """
     args = parser.parse_args()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = this_user()
@@ -80,6 +109,14 @@ class UserController(Resource):
     return {'message': 'You do not have permission to modify this user!'}, 401
   
   def delete(self, user_id):
+    """The DELETE handler for the /users/<user_id> endpoint
+    
+    Arguments:
+        user_id {int} -- The user's id
+    
+    Returns:
+        dict -- Status message
+    """
     args = parser.parse_args()
     target_user = User.query.filter_by(id=user_id).first_or_404()
     req_user = this_user()

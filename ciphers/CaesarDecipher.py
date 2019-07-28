@@ -3,6 +3,18 @@ from ciphers.Dictionaries import trie_search, lang_files
 special_case = ' 1234567890_=~!@#$%^&*()_+,./?:;"*-\n'
 
 def shift(text, s, lang = 'en'): 
+    """Shifts a sentence by int s
+    
+    Arguments:
+        text {str} -- The string to be shifted
+        s {int} -- The number of shifts
+    
+    Keyword Arguments:
+        lang {str} -- Two-letter language code (default: {'en'})
+    
+    Returns:
+        str -- The shifted sentence
+    """
     result = ''
     # traverse text 
     for i in range(len(text)): 
@@ -19,6 +31,15 @@ def shift(text, s, lang = 'en'):
 
 # WE ARE TAKING ARRAY OF WORDS AND CHECK THEM ONE BY ONE IN THE DICTIONARY
 def lookup(array, language):
+    """NO LONGER USED - Take each word and check them line by line in the dictionary
+    
+    Arguments:
+        array {list} -- List of words
+        language {str} -- Two-letter language code
+    
+    Returns:
+        bool -- Whether the sentence appeared in the dictionary
+    """
     for index in range(len(array) - 1):
         if language == 'zh' or language == 'ar':
             if dictionarylookup(language, array[index]):    # CHINESE AND ARABIC USE 1 SYMBOL SO LENGTH OF THE WORD IS 1
@@ -31,17 +52,19 @@ def lookup(array, language):
 
 
 def decrypt(cipher, language = 'idk'):
-    '''Takes a cipher, tries 26 shifts, and returns
+    """Takes a cipher, tries 26 shifts, and returns
     the answer containing the most dictionary words and the associated lang code
     for that dictionary.
-
-    decrypt(cipher, language) --> result, lang
     
-    Parameters:
-
-    cipher (str): The string to be decrypted
-
-    language (str): The 2-letter language code'''
+    Arguments:
+        cipher {str} -- The cipher to decrypt
+    
+    Keyword Arguments:
+        language {str} -- Two-letter language code (default: {'idk'})
+    
+    Returns:
+        (str, str) -- A tuple containing the shifted sentence and the two-letter language code
+    """
     # Create a tuple with intended values: (number_of_dictionary_words_found, shift_key, lang)
     best_match = (0, 0, 'en')
     # Get a list of lang codes from preimported tries

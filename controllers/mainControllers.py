@@ -23,7 +23,15 @@ parser.add_argument('name')
 parser.add_argument('Authorization', location='headers')
 
 def generate_token(user):
-  '''Generates a JWT-like auth token'''
+  """Generates a JWT-like auth token
+  
+  Arguments:
+      user {User} -- A SequelAlchemy user object
+  
+  Returns:
+      str -- The token
+  """
+
   data = {'id': user.id, 'username': user.username, 'role': user.role, 'org_id': user.org_id, 'created': str(datetime.now())}
   # Serialize user data to JSON, then encode to base64
   b64_data = b64encode(json.dumps(data).encode())
@@ -33,9 +41,18 @@ def generate_token(user):
   # Return the token in the format: {user_data}.{signature}
   return '%s.%s' % (b64_data.decode(), signature.decode())
 
+
 def read_token(token):
-  '''Validates the token payload with the signature, and returns 
-  a dict containing the user data in the payload'''
+  """Validates the token payload with the signature, and returns 
+  a dict containing the user data in the payload
+  
+  Arguments:
+      token {str} -- The token passed in the HTTP header
+  
+  Returns:
+      dict -- The decoded user data
+  """
+
   try:
     token = token.split('.')
     payload = token[0].encode()
@@ -51,6 +68,11 @@ def read_token(token):
   except: return None
 
 def this_user():
+  """Gets the current user's info from token
+  
+  Returns:
+      dict -- The user's data
+  """
   token = parser.parse_args()['Authorization']
   user = read_token(token)
   return user
@@ -59,6 +81,14 @@ def generic_400(message='Could not understand request'):
   return {'message': message}, 400
 
 def authenticate(func):
+  """A decorator method that checks that the user's auth token is valid
+  
+  Arguments:
+      func {func} -- The target method
+  
+  Returns:
+      func -- The target method
+  """
   @wraps(func)
   def wrapper(*args, **kwargs):
     if not getattr(func, 'authenticated', True):
@@ -74,6 +104,11 @@ class CaesarController(Resource):
   method_decorators = [authenticate]
   # Handle cipher entry
   def post(self):
+    """The POST handler for the /caesar endpoint
+    
+    Returns:
+        dict -- A dict containing the result and the detected language
+    """
     args = parser.parse_args()
     try:
       cipher = args['cipher']
@@ -92,6 +127,14 @@ class CaesarController(Resource):
   
 class NoAuthCaesarController(Resource):
   def post(self):
+    """The POST handler for the /test_caesar endpoint
+    
+    Arguments:
+        Resource {Resource} -- The Flask Resource
+    
+    Returns:
+        dict -- A dict containing the result and detected language
+    """
     args = parser.parse_args()
     try:
       cipher = args['cipher']
@@ -104,12 +147,28 @@ class NoAuthCaesarController(Resource):
 class OrganizationController(Resource):
   method_decorators = [authenticate]
   def get(self, org_name):
+    """The GET handler for /orgs/<org_id> endpoint
+    
+    Arguments:
+        org_name {str} -- The organization's name
+    
+    Returns:
+        dict -- Information about the organization and its list of users
+    """
     org = Organization.query.filter_by(name=org_name).first_or_404()
     users_in_org = User.query.filter_by(org_id=org.id).all()
     users_in_org_list = list(map(lambda u: {'username': u.username, 'role': u.role, 'id': u.id}, users_in_org))
     return {'id': org.id, 'name': org.name, 'users': users_in_org_list}
   
   def post(self, org_name):
+    """The POST handler for the /orgs/<org_name> endpoint
+    
+    Arguments:
+        org_name {str} -- The organization's name
+    
+    Returns:
+        dict -- A status message
+    """
     args = parser.parse_args()
     org = Organization.query.filter_by(name=org_name).first()
     if org:
@@ -127,6 +186,14 @@ class OrganizationController(Resource):
     return {'status': 'success'}, 201
   
   def put(self, org_name):
+    """The PUT handler for /orgs/<org_name> endpoint
+    
+    Arguments:
+        org_name {str} -- The organization's name
+    
+    Returns:
+        dict -- Information about the edited organization
+    """
     args = parser.parse_args()
     org = Organization.query.filter_by(name=org_name).first_or_404()
     req_user = this_user()
@@ -139,12 +206,25 @@ class OrganizationController(Resource):
   
 class OrganizationList(Resource):
   def get(self):
+    """The GET handler for the /orgs endpoint
+    
+    Returns:
+        list -- List of organizations
+    """
     orgs = Organization.query.all()
     orgs_list = list(map(lambda o: { 'name': o.name, 'id': o.id }, orgs))
     return orgs_list
 
 class NewsController(Resource):
   def get(self, org_name):
+    """The GET handler for the /news endpoint
+    
+    Arguments:
+        org_name {str} -- The organization's name
+    
+    Returns:
+        list -- List of news items for the organization
+    """
     try:
       news_url='https://news.google.com/news/rss/search?q=%s' % org_name
       with urlopen(news_url) as client:
@@ -158,6 +238,11 @@ class NewsController(Resource):
 class CheckSolutionController(Resource):
   method_decorators = [authenticate]
   def post(self):
+    """The POST handler for the /solutions endpoint
+    
+    Returns:
+        dict -- Data about an existing solution
+    """
     try:
       args = parser.parse_args()
       cipher = args['cipher']
@@ -169,6 +254,11 @@ class CheckSolutionController(Resource):
 class SavedSolutionsController(Resource):
   method_decorators = [authenticate]
   def get(self):
+    """The GET handler for the /saved_solutions endpoint
+    
+    Returns:
+        list -- List of saved solutions for the requesting user
+    """
     try:
       current_user = this_user()
       saved_solutions = SavedSolution.query.filter_by(user_id=current_user['id']).all()
@@ -178,6 +268,11 @@ class SavedSolutionsController(Resource):
       return generic_400(str(e))
   
   def post(self):
+    """The POST handler for the /saved_solutions endpoint
+    
+    Returns:
+        dict -- Status message
+    """
     try:
       args = parser.parse_args()
       # Create new saved solution
@@ -191,6 +286,14 @@ class SavedSolutionsController(Resource):
 class SavedSolutionController(Resource):
   method_decorators = [authenticate]
   def get(self, solution_id):
+    """The GET handler for the /saved_solutions/<solution_id> endpoint
+    
+    Arguments:
+        solution_id {int} -- The solution's id
+    
+    Returns:
+        dict -- Object containing the solution data
+    """
     try:
       current_user = this_user()
       solution = SavedSolution.query.filter_by(id=solution_id).first_or_404()
@@ -201,6 +304,14 @@ class SavedSolutionController(Resource):
       return generic_400(str(e))
   
   def delete(self, solution_id):
+    """The DELETE handler for the /saved_solutions/<solution_id> endpoint
+    
+    Arguments:
+        solution_id {int} -- The solution's id
+    
+    Returns:
+        dict -- Status message
+    """
     try:
       current_user = this_user()
       solution = SavedSolution.query.filter_by(id=solution_id).first_or_404()
